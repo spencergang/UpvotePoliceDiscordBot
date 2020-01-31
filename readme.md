@@ -1,0 +1,1 @@
+To setup auth on your own server rename the `auth.json.default` file to `auth.json` and insert your own application token where necessary.
