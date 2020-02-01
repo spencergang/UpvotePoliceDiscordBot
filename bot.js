@@ -17,7 +17,7 @@ client.on('message', message => {
 	var responseMessages = config.reaction.messages;
 
 	const reactionFilter = (reaction, user) => {
-		return reaction.emoji.name === config.reaction.toWatch && user.username === username;
+		return reaction.emoji.id === config.reaction.toWatch && user.username === username;
 	};
 
 	message.awaitReactions(reactionFilter, {max: 1, time: reactionWatchTime, errors: ['time']})
