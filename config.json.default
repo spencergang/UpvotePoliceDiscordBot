@@ -1,10 +1,4 @@
 {
-	"users_to_hate":[
-		{
-			"username": "DUMMY",
-			"friendly_name": "DUMMY"
-		}
-	],
 	"reaction": {
 		"to_watch": "Get unicode and place here",
 		"messages": [

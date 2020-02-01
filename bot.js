@@ -10,25 +10,24 @@ client.on('ready', () =>{
 });
 
 client.on('message', message => {
-	config.users_to_hate.forEach(evaluateMessage);
+	var username = message.author.username;
+	var nickname = message.author.lastMessage.member.nickname;
+	var reactionWatchTime = config.reaction.toWatch;
+	var reactionWatchTime = config.reaction.watchTime;
+	var responseMessages = config.reaction.messages;
 
-	function evaluateMessage(hated_user, index) {
+	const reactionFilter = (reaction, user) => {
+		return reaction.emoji.name === config.reaction.toWatch && user.username === username;
+	};
 
-		if (message.author.username === hated_user.username){
-			const nickname = message.author.lastMessage.member.nickname
-			const reactionFilter = (reaction, user) => {
-				return reaction.emoji.name ===config.reaction.to_watch && user.username === hated_user.username;		
-			};
-
-			message.awaitReactions(reactionFilter, {max: 1, time: config.message_watch_time, errors: ['time']})
-				.then(collected => {
-					const replyMessage = config.reaction.messages[Math.floor(Math.random()*config.reaction.messages.length)].replace('{nickname}', nickname);
-					message.reply(replyMessage);
-				})
-				.catch(collected => {
-					console.log(`${nickname} did not upvote themselves`)
-				});
-		}
-	}
+	message.awaitReactions(reactionFilter, {max: 1, time: reactionWatchTime, errors: ['time']})
+		.then(collected => {
+			console.log(`${nickname} (${username}) upvoted themselves.`)
+			const replyMessage = config.reaction.messages[Math.floor(Math.random()*config.reaction.messages.length)].replace('{nickname}', nickname);
+			message.reply(replyMessage);
+		})
+		.catch(collected => {
+			console.log(`${nickname} (${username}) did not upvote themselves.`)
+		});
 });
 
