@@ -2,5 +2,6 @@
 	"user_to_hate":{
 		"username": "DUMMY",
 		"friendly_name": "DUMMY"		
-	}
+	},
+	"reaction_to_watch": "Get unicode and place here"
 }

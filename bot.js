@@ -13,7 +13,7 @@ client.on('message', msg => {
 	if (msg.author.username === config.user_to_hate.username) {
 		console.log("user to hate sent message");
 		const filter = (reaction, user) => {
-			return reaction.emoji.name === '👍' && user.username === config.user_to_hate.username;
+			return reaction.emoji.name === config.reaction_to_watch && user.username === config.user_to_hate.username;
 		};
 
 		msg.awaitReactions(filter, { max: 1, time: 30000, errors: ['time'] })
