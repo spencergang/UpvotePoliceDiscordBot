@@ -1,7 +1,15 @@
 {
-	"user_to_hate":{
-		"username": "DUMMY",
-		"friendly_name": "DUMMY"		
+	"users_to_hate":[
+		{
+			"username": "DUMMY",
+			"friendly_name": "DUMMY"
+		}
+	],
+	"reaction": {
+		"to_watch": "Get unicode and place here",
+		"messages": [
+			"You dumb bitch {nickname}, don't upvote yourself."
+		]
 	},
-	"reaction_to_watch": "Get unicode and place here"
+	"message_watch_time": 1000000
 }

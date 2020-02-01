@@ -9,20 +9,26 @@ client.on('ready', () =>{
 	console.log('Logged in as ' + client.user.tag);
 });
 
-client.on('message', msg => {
-	if (msg.author.username === config.user_to_hate.username) {
-		console.log("user to hate sent message");
-		const filter = (reaction, user) => {
-			return reaction.emoji.name === config.reaction_to_watch && user.username === config.user_to_hate.username;
-		};
+client.on('message', message => {
+	config.users_to_hate.forEach(evaluateMessage);
 
-		msg.awaitReactions(filter, { max: 1, time: 30000, errors: ['time'] })
-			.then(collected => {
-				msg.reply("You dumb bitch " + config.user_to_hate.friendly_name + ", you shouldn't upvote yourself");
-			})
-			.catch(collected => {
-				console.log("Wow, they didn't upvote themselves!");
-			});
+	function evaluateMessage(hated_user, index) {
+
+		if (message.author.username === hated_user.username){
+			const nickname = message.author.lastMessage.member.nickname
+			const reactionFilter = (reaction, user) => {
+				return reaction.emoji.name ===config.reaction.to_watch && user.username === hated_user.username;		
+			};
+
+			message.awaitReactions(reactionFilter, {max: 1, time: config.message_watch_time, errors: ['time']})
+				.then(collected => {
+					const replyMessage = config.reaction.messages[Math.floor(Math.random()*config.reaction.messages.length)].replace('{nickname}', nickname);
+					message.reply(replyMessage);
+				})
+				.catch(collected => {
+					console.log(`${nickname} did not upvote themselves`)
+				});
+		}
 	}
 });
 
