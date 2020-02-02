@@ -1,9 +1,11 @@
 {
 	"reaction": {
-		"to_watch": "438842241935605765",
+		"toWatch": "EMOJI_ID",
 		"messages": [
-			"You dumb bitch {nickname}, don't upvote yourself."
+			"PUT YOUR HANDS UP THIS IS THE UPVOTE POLICE!!!"
 		]
 	},
-	"message_watch_time": 1000000
+	"database": {
+		"uri": "MONGO_URI"
+	}
 }
