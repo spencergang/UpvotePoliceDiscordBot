@@ -1,78 +1,61 @@
 const Discord = require('discord.js');
 const discordClient = new Discord.Client();
-const mongoClient = require('mongodb').MongoClient
 const auth = require('./auth.json');
 const config = require('./config.json')
+const DatabaseDriver = require('./databaseDriver');
+const dbDriver = new DatabaseDriver();
 
-
-const uri = config.database.uri;
-const dbClient = new mongoClient(uri, { useNewUrlParser: true });
 discordClient.login(auth.token);
 
-function updateUpvoteRecord(username, reactionMessage) {
-	dbClient.connect(err => {
-  	const collection = dbClient.db("upvote_police_bot").collection("self_upvotes");
-  	var today = new Date();
+async function updateUpvoteRecord(username, reactionMessage) {
+	var existingRecords = await dbDriver.getUpvoteRecords(username);
+	var today = new Date();
+	var todaysRecords = existingRecords.filter(function (record){
+		return record.day === today.getDate() && record.month == today.getMonth() && record.year == today.getFullYear();
+	});
+	if (todaysRecords.length) {
+		const newCount = ++todaysRecords[0].count;
+		dbDriver.updateCount(todaysRecords[0]._id, newCount);
 
-		var query = {
+		if (newCount > 0 && newCount % config.reaction.alarmCount === 0) {
+			reactionMessage.channel.send(`WEE WOO WEE WOO FUCK BOY ALERT WEEE WOO WEE WOO ${config.reaction.alarmGifLink}`)
+		}
+		reactionMessage.channel.send(`Todays self-upvote count for ${username}: ${newCount}`)
+	}
+	else {
+		const newRecord = {
+			date: today,
 			day: today.getDate(),
 			month: today.getMonth(),
 			year: today.getFullYear(),
-			username: username
-		};
-
-		collection.find(query).toArray(function(err, result){
-			if (err) throw err;
-
-			if (result.length > 0)
-			{
-				console.log(result[0]);
-				const newCount = ++result[0].count;
-				const newValues = { $set: { count: newCount }};
-
-				collection.updateOne(query, newValues, function(err, res){
-					if (err) throw err;
-					console.log(`${username} record updated.`);
-					reactionMessage.channel.send(`Todays self-upvote count for ${username}: ${newCount}`)
-				});
-			}
-			else {
-				const insertRecord = {
-					date: today,
-					day: today.getDate(),
-					month: today.getMonth(),
-					year: today.getFullYear(),
-					username: username,
-					count: 1
-				};
-
-				collection.insertOne(insertRecord, function(err, res){
-					if (err) throw err;
-					console.log(`${username} record inserted`);
-					reactionMessage.channel.send(`Todays self-upvote count for ${username}: 1`)
-				});
-			}
-		});
-	});
+			username: username,
+			count: 1
+		}
+		dbDriver.insertNewUpvoteRecord(newRecord);
+		reactionMessage.channel.send(`Todays self-upvote count for ${username}: ${newRecord.count}`)
+	}
 }
 
 discordClient.on('ready', () =>{
 	console.log('Logged in as ' + discordClient.user.tag);
 });
 
-discordClient.on('messageReactionAdd', (reaction, user) => {
+discordClient.on('messageReactionAdd', (reaction, author, user) => {
 	var messageUsername = reaction.message.author.username;
 	var reactionUsername = reaction.users.first().username;
 	var emojiId = reaction.emoji.id;
 	var emojiToWatchId = config.reaction.toWatch;
 
+	console.log(`Message Creator: ${messageUsername}`);
+	console.log(`Reaction Creator: ${reactionUsername}`);
+	console.log(`Reaction Emoji Id: ${emojiId}`);
 	var sameUsername = messageUsername === reactionUsername;
 	var correctEmoji = emojiId === emojiToWatchId;
 
 	if (sameUsername && correctEmoji)
 	{
 		const replyMessage = config.reaction.messages[Math.floor(Math.random()*config.reaction.messages.length)];
-		reaction.message.reply(replyMessage);
+		reaction.message.channel.send(`${author} ${replyMessage}`);
 		updateUpvoteRecord(reactionUsername, reaction.message);
 	}
 });
@@ -94,10 +77,10 @@ discordClient.on('raw', packet => {
         if (reaction) reaction.users.set(packet.d.user_id, discordClient.users.get(packet.d.user_id));
         // Check which type of event it is before emitting
         if (packet.t === 'MESSAGE_REACTION_ADD') {
-            discordClient.emit('messageReactionAdd', reaction, discordClient.users.get(packet.d.user_id));
+            discordClient.emit('messageReactionAdd', reaction, message.author,  discordClient.users.get(packet.d.user_id));
         }
         if (packet.t === 'MESSAGE_REACTION_REMOVE') {
-            discordClient.emit('messageReactionRemove', reaction, discordClient.users.get(packet.d.user_id));
+            discordClient.emit('messageReactionRemove', reaction, message.author, discordClient.users.get(packet.d.user_id));
         }
     });
 });
